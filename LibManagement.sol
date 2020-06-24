@@ -33,6 +33,7 @@ contract StudentManagment is Admin{
     uint256 isbn;
     
     //@ attribute of students that are to be added.
+    
     struct Book{
         string name;
         uint256 numBooks;
@@ -40,12 +41,13 @@ contract StudentManagment is Admin{
         bool isAdded;
         bool isIssued;
     }
+    
     //@ identifier same for same books. 
     uint256 bookCode;
     
     //@ mapping bookcode to isbn to Struct Book.
     mapping (uint256 => mapping(uint256 => Book)) public lib;
-
+    
     //@ mapping ETH address to unique ID to Struct Student.
     mapping(address => mapping(uint256 => Student))public students;
     
@@ -54,12 +56,12 @@ contract StudentManagment is Admin{
     event AddBooks (uint256 indexed isbn,string indexed name,uint256 price);
     event RemoveBook (uint256 indexed isbn,uint256 indexed bookCode);
     event BookIssued (uint256 indexed isbn,uint256 indexed bookCode, address studentAddress, uint256 ID);
-
+    
     //@ event related to Student(Registeration, Suspention, Removing Student).
     event Register(uint256 indexed _studentID, address studAdd);
     event Suspended(uint256 indexed  _studentID, address studAdd);
     event Removed(uint256 indexed  _studentID, address studAdd);
-  
+    
     //@ Registration of student Setting up attributes. 
     //@ Accessible to admin of the system only.
     //@ Student can be registered only Once.
@@ -77,7 +79,8 @@ contract StudentManagment is Admin{
        emit Register( _studentID, _toRegister);
        return true;
    }
-   
+    //@ This fuction is declared for internal usage not outside the contract.
+    //@ Check for conditions like is the student is registered or not & is the student is a defaulter.
     function isAllowed(address _toCheck,uint256 _studentID)internal view returns(bool)
     {
        Student storage s = students[_toCheck][_studentID];
@@ -87,6 +90,8 @@ contract StudentManagment is Admin{
        return false;
    }
     
+    //@ Only admin is allowed to remove student from the system.
+    //@ delete() will remove all the existing attribute of the student of that particular ETH address and ID.
     function remove(uint256 _studentID,address _toRemove)public onlyAdmin returns(bool) 
     {
         
@@ -100,6 +105,7 @@ contract StudentManagment is Admin{
         return true;
     }
     
+    //@ Admin will suspend the student from the system.
     function suspend(uint256 _studentID, address _toSuspend)public onlyAdmin returns(bool) 
     {
         
@@ -113,6 +119,8 @@ contract StudentManagment is Admin{
         return true;
     }
    
+   //@ Adding books with unique _isbn number and _bookcode and other attributes of a book.
+   //@ A book  with a unique combination of _isbn and _bookcode can be added only once.
     function addBooks(uint256 _bookCode,uint256 _isbn,string memory _name,uint256 _price)public
     onlyAdmin returns(bool)
     {
@@ -125,6 +133,9 @@ contract StudentManagment is Admin{
         return(true);
     }
     
+    //@ Books issued is added to the address that requested the issue.
+    //@ Checks the availiblity of the requested book.
+    //@ The Book is marked as Issued if the transaction go through.
     function issueBook(uint256 _bookCode, uint256 _isbn, address _requestIssue, uint256 _id)public 
     returns(bool)
     {
@@ -139,6 +150,8 @@ contract StudentManagment is Admin{
         return true;
    }
    
+   //@ This function deals with the removal of the books & all the attributes are deleted.
+   //@ Checks that the book isn't issued and there exists a desired book in the system. 
     function removeBooks(uint256 _bookCode,uint256 _isbn)public onlyAdmin returns(bool)
     {
        Book storage b = lib[_bookCode][_isbn];
